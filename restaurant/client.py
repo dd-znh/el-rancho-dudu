@@ -25,8 +25,7 @@ class Client(Thread):
     """ Espera ser atendido pela equipe. """
     def wait_crew(self):
         print("[WAIT] - O cliente {} esta aguardando atendimento.".format(self._id))
-        with clients_lock[self._id]:
-            clients_lock_cond[self._id].wait()
+        clients_lock_cond[self._id].wait()
 
     
     """ O cliente pensa no pedido."""
@@ -43,6 +42,7 @@ class Client(Thread):
     """ Espera pelo pedido ficar pronto. """
     def wait_chef(self):
         print("[WAIT MEAL] - O cliente {} esta aguardando o prato.".format(self._id))
+        clients_lock_cond[self._id].wait()
     
     """
         O cliente reserva o lugar e se senta.
@@ -51,7 +51,9 @@ class Client(Thread):
     """
     def seat_and_eat(self):
         print("[WAIT SEAT] - O cliente {} esta aguardando um lugar ficar livre".format(self._id))
+        clients_lock_cond[self._id].wait()
         print("[SEAT] - O cliente {} encontrou um lugar livre e sentou".format(self._id))
+
 
     """ O cliente deixa o restaurante."""
     def leave(self):

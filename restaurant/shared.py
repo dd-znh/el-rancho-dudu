@@ -8,7 +8,13 @@
 
 global lock_call # Lock para o totem
 global chegou_cliente # Condition para o totem (chegou cliente)
+
 global totem # Totem
+
 global t_list # Lista de threads
+
 global clients_lock # Lista de locks para os clientes
 global clients_lock_cond # Lista de conditions para os clientes (clients_lock_cond[i] para o cliente i)
+
+global lista_pedidos_chef # Lista de pedidos para o chef
+global lock_chef # Lock para a lista de pedidos do chef

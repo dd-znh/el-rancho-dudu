@@ -12,6 +12,7 @@ class Crew(Thread):
     def __init__(self, id):
         super().__init__()
         self._id = id
+        self._cliente_atual = None
         # Insira o que achar necessario no construtor da classe.
 
     """ O membro da equipe espera um cliente. """    
@@ -21,21 +22,18 @@ class Crew(Thread):
         # Espera o cliente chegar
         chegou_cliente.wait()
 
-        # TODO: lock totem
-
     """ O membro da equipe chama o cliente da senha ticket."""
     def call_client(self, ticket):
 
         # Remove o ticket da lista de chamadas do totem
         totem.call.remove(ticket)
 
-        # TODO: unlock totem
-
         print("[CALLING] - O membro da equipe {} está chamando o cliente da senha {}.".format(self._id, ticket))
 
         # Libera o cliente
         for t in t_list:
             if isinstance(t, Client) and t._ticket == ticket:
+                self._cliente_atual = t
                 with clients_lock[t._id]:
                     clients_lock_cond[ticket].notify()
         
@@ -51,4 +49,4 @@ class Crew(Thread):
     def run(self):
         self.wait()
         self.call_client(min(totem.call))
-        self.make_order(0)
+        self.make_order(self._cliente_atual._ticket)

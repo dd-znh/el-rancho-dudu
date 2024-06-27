@@ -18,12 +18,19 @@ def definitions(argv, threads):
     Esse espaco e reservado para voce definir variaveis globais que serao utilizadas por todas as threads.
     Lembre-se de criar as variaveis globais no arquivo restaurant/shared.py
     """
+    # TODO: talvez dê para instanciar o lock apenas no arquivo que usa ele
     totem = Totem(argv.clients)
+    t_list = threads
+
     chegou_cliente = Condition(lock_call)
     lock_call = Lock()
-    t_list = threads
+
+    # TODO: talvez dê para inicializar o lock no próprio cliente, e ter o acesso a ele pela t_list
     clients_lock = [Lock() for _ in range(argv.clients)]
     clients_lock_cond = [Condition(lock) for lock in clients_lock]
+
+    lista_pedidos_chef = []
+    lock_chef = Lock()
 
 def close_all(argv, threads):
     """
