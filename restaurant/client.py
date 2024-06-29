@@ -1,7 +1,7 @@
 # imports do Python
 from threading import Thread
 from time import sleep
-from totem import *
+from restaurant.totem import *
 
 # imports do projeto
 
@@ -25,9 +25,9 @@ class Client(Thread):
     """ Espera ser atendido pela equipe. """
     def wait_crew(self):
         print("[WAIT] - O cliente {} esta aguardando atendimento.".format(self._id))
-        clients_lock_cond[self._id].wait()
+        with clients_lock[self._id]:
+            clients_lock_cond[self._id].wait()
 
-    
     """ O cliente pensa no pedido."""
     def think_order(self):
         print("[THINK] - O cliente {} esta pensando no que pedir.".format(self._id))
@@ -42,7 +42,8 @@ class Client(Thread):
     """ Espera pelo pedido ficar pronto. """
     def wait_chef(self):
         print("[WAIT MEAL] - O cliente {} esta aguardando o prato.".format(self._id))
-        clients_lock_cond[self._id].wait()
+        with clients_lock[self._id]:
+            clients_lock_cond[self._id].wait()
     
     """
         O cliente reserva o lugar e se senta.
@@ -51,12 +52,17 @@ class Client(Thread):
     """
     def seat_and_eat(self):
         print("[WAIT SEAT] - O cliente {} esta aguardando um lugar ficar livre".format(self._id))
-        clients_lock_cond[self._id].wait()
+        table.seat(self)
+        with clients_lock[self._id]:
+            clients_lock_cond[self._id].notify()
         print("[SEAT] - O cliente {} encontrou um lugar livre e sentou".format(self._id))
-
+        sleep(randint(1, 5))
 
     """ O cliente deixa o restaurante."""
     def leave(self):
+        with clients_lock[self._id]:
+            clients_lock_cond[self._id].wait()
+        table.leave(self)
         print("[LEAVE] - O cliente {} saiu do restaurante".format(self._id))
     
     """ Thread do cliente """

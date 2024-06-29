@@ -1,6 +1,6 @@
 # imports do Python
 from random import randint
-from shared import *
+from restaurant.shared import *
 
 """
     Não troque o nome das variáveis compartilhadas, a assinatura e o nomes das funções.

@@ -1,6 +1,6 @@
 # imports do Python
 from threading import Thread
-from shared import *
+from restaurant.shared import *
 
 
 """
@@ -44,6 +44,9 @@ class Crew(Thread):
 
     def make_order(self, order):
         print("[STORING] - O membro da equipe {} está anotando o pedido {} para o chef.".format(self._id, order))
+        with lock_chef:
+            lista_pedidos_chef.append(order)
+            lock_chef.notify()
 
     """ Thread do membro da equipe."""
     def run(self):

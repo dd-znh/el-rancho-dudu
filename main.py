@@ -7,6 +7,7 @@ import argparse
 from restaurant.client import Client
 from restaurant.crew import Crew
 from restaurant.chef import Chef
+from restaurant.table import Table
 
 from restaurant.totem import Totem
 # Importe o que achar necessario aqui
@@ -21,6 +22,10 @@ def definitions(argv, threads):
     # TODO: talvez dê para instanciar o lock apenas no arquivo que usa ele
     totem = Totem(argv.clients)
     t_list = threads
+
+    table = Table(argv.seats)
+
+    sem_tab = Lock() 
 
     chegou_cliente = Condition(lock_call)
     lock_call = Lock()

@@ -10,6 +10,9 @@ global lock_call # Lock para o totem
 global chegou_cliente # Condition para o totem (chegou cliente)
 
 global totem # Totem
+global table # Mesa
+
+global sem_tab # Semáforo para a mesa
 
 global t_list # Lista de threads
 
