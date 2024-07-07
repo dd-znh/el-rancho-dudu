@@ -1,7 +1,8 @@
 # imports do Python
-from threading import Thread
+from random import randint
+from threading import Condition, Lock, Semaphore, Thread
 from time import sleep
-from restaurant.totem import *
+import restaurant.shared as shared
 
 # imports do projeto
 
@@ -19,14 +20,18 @@ class Client(Thread):
 
     """ Pega o ticket do totem."""
     def get_my_ticket(self):
-        self._ticket = totem.get_ticket()
+        with shared.totem_lock: # lock no totem
+            self._ticket = shared.totem.get_ticket() # pega um ticket
+        shared.sem_wait_crew[self._ticket] = Semaphore(0) # cria um semáforo para a espera da equipe
+        shared.sem_wait_client[self._ticket] = Semaphore(0) # cria um semáforo para liberar o atendente anotar seu pedido
+        shared.sem_wait_chef[self._ticket] = Semaphore(0) # cria um semáforo para esperar o pedido ficar pronto
         print("[TICKET] - O cliente {} pegou o ticket.".format(self._id))
 
     """ Espera ser atendido pela equipe. """
     def wait_crew(self):
         print("[WAIT] - O cliente {} esta aguardando atendimento.".format(self._id))
-        with clients_lock[self._id]:
-            clients_lock_cond[self._id].wait()
+        # uso do semáforo para esperar a equipe
+        shared.sem_wait_crew[self._ticket].acquire()
 
     """ O cliente pensa no pedido."""
     def think_order(self):
@@ -35,16 +40,16 @@ class Client(Thread):
 
     """ O cliente faz o pedido."""
     def order(self):
+        # uso do semáforo para liberar o atendente anotar o pedido
+        shared.sem_wait_client[self._ticket].release()
         print("[ORDER] - O cliente {} pediu algo.".format(self._id))
-        with clients_lock[self._id]:
-            chegou_cliente.notify()
 
     """ Espera pelo pedido ficar pronto. """
     def wait_chef(self):
         print("[WAIT MEAL] - O cliente {} esta aguardando o prato.".format(self._id))
-        with clients_lock[self._id]:
-            clients_lock_cond[self._id].wait()
-    
+        # uso do semáforo para esperar o pedido ficar pronto
+        shared.sem_wait_chef[self._ticket].acquire()
+
     """
         O cliente reserva o lugar e se senta.
         Lembre-se que antes de comer o cliente deve ser atendido pela equipe, 
@@ -52,17 +57,15 @@ class Client(Thread):
     """
     def seat_and_eat(self):
         print("[WAIT SEAT] - O cliente {} esta aguardando um lugar ficar livre".format(self._id))
-        table.seat(self)
-        with clients_lock[self._id]:
-            clients_lock_cond[self._id].notify()
+        # chama a função de sentar na mesa
+        shared.table.seat(self)
         print("[SEAT] - O cliente {} encontrou um lugar livre e sentou".format(self._id))
         sleep(randint(1, 5))
 
     """ O cliente deixa o restaurante."""
     def leave(self):
-        with clients_lock[self._id]:
-            clients_lock_cond[self._id].wait()
-        table.leave(self)
+        # chama a função de sair da mesa
+        shared.table.leave(self)
         print("[LEAVE] - O cliente {} saiu do restaurante".format(self._id))
     
     """ Thread do cliente """

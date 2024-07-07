@@ -1,4 +1,5 @@
 # imports do Python
+from queue import Queue
 import sys
 sys.dont_write_bytecode = True # Usado para nao criar arquivos .pyc
 import argparse
@@ -8,34 +9,33 @@ from restaurant.client import Client
 from restaurant.crew import Crew
 from restaurant.chef import Chef
 from restaurant.table import Table
-
 from restaurant.totem import Totem
+import restaurant.shared as shared
 # Importe o que achar necessario aqui
 # import my_module
-from threading import Lock, Condition
+from threading import Lock, Condition, Semaphore
 
 def definitions(argv, threads):
     """
     Esse espaco e reservado para voce definir variaveis globais que serao utilizadas por todas as threads.
     Lembre-se de criar as variaveis globais no arquivo restaurant/shared.py
     """
-    # TODO: talvez dê para instanciar o lock apenas no arquivo que usa ele
-    totem = Totem(argv.clients)
-    t_list = threads
 
-    table = Table(argv.seats)
+    shared.totem = Totem(argv.clients)
+    shared.totem_lock = Lock()
+    shared.clients_remain = argv.clients
 
-    sem_tab = Lock() 
+    shared.table = Table(argv.seats)
+    shared.sem_tab = Semaphore(argv.seats)
 
-    chegou_cliente = Condition(lock_call)
-    lock_call = Lock()
+    shared.sem_wait_chef = {}
+    shared.sem_wait_client = {}
+    shared.sem_wait_crew = {}
 
-    # TODO: talvez dê para inicializar o lock no próprio cliente, e ter o acesso a ele pela t_list
-    clients_lock = [Lock() for _ in range(argv.clients)]
-    clients_lock_cond = [Condition(lock) for lock in clients_lock]
-
-    lista_pedidos_chef = []
-    lock_chef = Lock()
+    shared.fila_pedidos_chef = Queue()
+    shared.lock_chef = Lock()
+    shared.cond_chef = Condition(shared.lock_chef)
+    shared.n_clients = argv.clients
 
 def close_all(argv, threads):
     """

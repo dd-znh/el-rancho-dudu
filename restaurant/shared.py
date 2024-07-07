@@ -6,18 +6,35 @@
 #       global my_global_variable
 #       return my_global_variable
 
-global lock_call # Lock para o totem
-global chegou_cliente # Condition para o totem (chegou cliente)
+global sem_totem # Semaforo para o totem (chegou cliente)
+sem_totem = None
+global clients_remain # Variável para controlar o número de clientes
+clients_remain = None
 
 global totem # Totem
+totem = None
 global table # Mesa
+table = None
 
-global sem_tab # Semáforo para a mesa
+global sem_tab # Semáforo para acesso a mesa
+sem_tab = None
 
-global t_list # Lista de threads
+global totem_lock # Lock para operação do Totem
+totem_lock = None
 
-global clients_lock # Lista de locks para os clientes
-global clients_lock_cond # Lista de conditions para os clientes (clients_lock_cond[i] para o cliente i)
+global sem_wait_client # Semáforo para o cliente
+sem_wait_client = {}
+global sem_wait_chef # Semáforo para o chef
+sem_wait_chef = {}
+global sem_wait_crew # Semáforo para a equipe
+sem_wait_crew = {}
 
-global lista_pedidos_chef # Lista de pedidos para o chef
+global fila_pedidos_chef # Lista de pedidos para o chef
+fila_pedidos_chef = None
 global lock_chef # Lock para a lista de pedidos do chef
+lock_chef = None
+global cond_chef # Condition para o chef
+cond_chef = None
+
+global n_clients# número de clientes
+n_clients = None

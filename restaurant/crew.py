@@ -1,6 +1,6 @@
 # imports do Python
 from threading import Thread
-from restaurant.shared import *
+import restaurant.shared as shared
 
 
 """
@@ -12,44 +12,49 @@ class Crew(Thread):
     def __init__(self, id):
         super().__init__()
         self._id = id
-        self._cliente_atual = None
+        self._ticket_atual = None
         # Insira o que achar necessario no construtor da classe.
 
     """ O membro da equipe espera um cliente. """    
     def wait(self):
         print("O membro da equipe {} está esperando um cliente.".format(self._id))
 
-        # Espera o cliente chegar
-        chegou_cliente.wait()
+        # Espera um cliente chegar
+        shared.sem_totem.acquire()
 
     """ O membro da equipe chama o cliente da senha ticket."""
     def call_client(self, ticket):
 
         # Remove o ticket da lista de chamadas do totem
-        totem.call.remove(ticket)
+        with shared.totem_lock:
+            shared.totem.call.remove(ticket)
 
         print("[CALLING] - O membro da equipe {} está chamando o cliente da senha {}.".format(self._id, ticket))
 
-        # Libera o cliente
-        for t in t_list:
-            if isinstance(t, Client) and t._ticket == ticket:
-                self._cliente_atual = t
-                with clients_lock[t._id]:
-                    clients_lock_cond[ticket].notify()
-        
-        # Espera o cliente terminar o pedido
-        with lock_call:
-            chegou_cliente.wait()
-        
+        # Libera o cliente com o ticket atual atualizado
+        self._ticket_atual = ticket
+        shared.sem_wait_crew[ticket].release()
 
-    def make_order(self, order):
+    def make_order(self, order): 
+        # Espera o cliente fazer o pedido
+        shared.sem_wait_client[self._ticket_atual].acquire()
+
         print("[STORING] - O membro da equipe {} está anotando o pedido {} para o chef.".format(self._id, order))
-        with lock_chef:
-            lista_pedidos_chef.append(order)
-            lock_chef.notify()
+
+        # Coloca o pedido na fila do chef
+        with shared.lock_chef:
+            shared.fila_pedidos_chef.put(order)
+            shared.cond_chef.notify()
 
     """ Thread do membro da equipe."""
     def run(self):
         self.wait()
-        self.call_client(min(totem.call))
-        self.make_order(self._cliente_atual._ticket)
+        # Enquanto houver clientes para atender são executadas as funções de chamar cliente e fazer pedido
+        while (1):
+            with shared.totem_lock: # lock do totem para acessar o número de clientes restantes
+                if shared.clients_remain == 0:
+                    break
+                shared.clients_remain -= 1
+                min_ticket = min(shared.totem.call)
+            self.call_client(min_ticket)
+            self.make_order(self._ticket_atual)            

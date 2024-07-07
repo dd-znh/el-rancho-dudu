@@ -3,7 +3,7 @@
     Não troque o nome das variáveis compartilhadas, a assinatura e o nomes das funções.
 """
 
-from restaurant.shared import *
+import restaurant.shared as shared
 
 class Table:
 
@@ -14,8 +14,10 @@ class Table:
     
     """ O cliente se senta na mesa."""
     def seat(self, client):
-        sem_tab.acquire()
+        # O cliente espera a mesa ficar livre
+        shared.sem_tab.acquire()
     
     """ O cliente deixa a mesa."""
     def leave(self, client):
-        sem_tab.release()
+        # O cliente deixa a mesa
+        shared.sem_tab.release()
